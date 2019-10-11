@@ -92,9 +92,7 @@ app.post('/register', (request, response) => {
 });
 
 app.get('/profile/:id', (request, response) => {
-    const {
-        id
-    } = request.params;
+    const {id} = request.params;
     let found = false;
     dataBase.users.forEach((user) => {
         if (user.id === id) {
@@ -108,9 +106,7 @@ app.get('/profile/:id', (request, response) => {
 });
 
 app.put('/image', (request, response) => {
-    const {
-        id
-    } = request.body;
+    const {id} = request.body;
     let found = false;
     dataBase.users.forEach((user) => {
         if (user.id === id) {
