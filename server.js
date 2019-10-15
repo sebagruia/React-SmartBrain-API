@@ -1,71 +1,60 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+// For the "Knex" library - it connects the database to the server
+const knex = require('knex');
 
-// For the "bcrypt" library
+const dataBase = knex({
+    client: 'pg',
+    connection: {
+        host: '127.0.0.1',
+        user: 'postgres', // for Windows the "user" = "postgres" 
+        password: 'test123', // for Windows the "password" = "the password that was set when installing postgress" 
+        database: 'smartBrain'
+    }
+});
+
+dataBase.select('*').from('users').then(data => { //Knex creates a Promise, so we can use "then()"
+    console.log(data);
+
+});
+
+
+// For the "bcrypt" library - for encrypting the password
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-const myPlaintextPassword = 'apples';
-const someOtherPlaintextPassword = 'not_bacon';
 // ---------------------------------------------
 
 const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
-const dataBase = {
-    users: [{
-            id: '123',
-            name: 'John',
-            email: 'john@gmail.com',
-            password: 'cookies',
-            entries: 0,
-            joined: new Date()
-        },
-        {
-            id: '124',
-            name: 'Sally',
-            email: 'sally@gmail.com',
-            password: 'bananas',
-            entries: 0,
-            joined: new Date()
-        }
-
-    ],
-    login: [
-        {
-            id: '987',
-            hash: '',
-            email: 'john@gmail.com'
-
-        }
-
-    ]
-};
-
-
-
 
 app.get('/', (request, response) => {
     response.json(dataBase.users);
 });
 
 app.post('/signIn', (request, response) => {
-    // Load hash from your password DB.
-    bcrypt.compare(myPlaintextPassword, '$2b$10$xN/crNWviURulsMCIsIJjO.raLedmvYkST5ULcXrtHppXYUKNtCbK', function (err, res) {
-        // res == true
-        console.log('first quess', res);
-    });
-    bcrypt.compare(someOtherPlaintextPassword, '$2b$10$xN/crNWviURulsMCIsIJjO.raLedmvYkST5ULcXrtHppXYUKNtCbK', function (err, res) {
-        // res == false
-        console.log('second quess', res);
-    });
-    // response.send('SignIn response working'); This can be also used but express comes with a better method -> json()
-    if (request.body.email === dataBase.users[0].email && request.body.password === dataBase.users[0].password) {
-        response.json(dataBase.users[0])
-    } else {
-        response.status(400).json('Error logging in');
+  dataBase.select('email', 'hash').from('login')
+  .where('email', '=', request.body.email)
+  .then(data=>{
+    const isValid = bcrypt.compareSync(request.body.password, data[0].hash);
+    if(isValid){
+        return dataBase.select('*').from('users')
+        .where('email', '=', request.body.email)
+        .then(user=>{
+            console.log(user);
+            response.json(user[0])})
+        .catch(err=>{
+            response.status(400).json('unable to get user');
+        })
+    }else{
+        return response.json('Password - Username cobination not matching');
     }
+        
+    
+  })
+  .catch(err=>response.status(400).json('wrong credentials'));
 
 })
 
@@ -74,52 +63,87 @@ app.post('/register', (request, response) => {
         email,
         password,
         name
-        } = request.body;
-    bcrypt.hash(password, saltRounds, function (err, hash) {
-        // Store hash in your password DB.
-        console.log(hash);
-    });
-    dataBase.users.push({
-        id: '125',
-        name: name,
-        email: email,
-        password: password,
-        entries: 0,
-        joined: new Date()
-    });
+    } = request.body;
+    const hash = bcrypt.hashSync(password, saltRounds);
 
-    response.json(dataBase.users[dataBase.users.length - 1]);
+    //This is the way to add new user when we don't use a DataBase bot only a variable that holds all our users
+    // dataBase.users.push({
+    //     id: '125',
+    //     name: name,
+    //     email: email,
+    //     password: password,
+    //     entries: 0,
+    //     joined: new Date()
+    // });
+
+    dataBase.transaction(trx => { // transaction() is a method from Knex library and it makes sure both tables: users and login are updated, if one fails then the whole transaction fails
+        trx.insert({
+            hash: hash,
+            email: email
+        })
+            .into('login')
+            .returning('email')
+            .then(logInEmail => {
+                return trx.insert({
+                    email: logInEmail[0],
+                    name: name,
+                    time: new Date()
+
+                })
+                    .into('users')
+                    .returning('*') // returning('*') -> is a method from Knex that allows us to return all columns
+                    .then(user => {
+                        response.json(user[0]);
+
+                    })
+            })
+            .then(trx.commit)
+            .catch(trx.rollback);
+
+    }) // transaction(trx) -> is a method from Knex 
+        // return dataBase('users')
+        // .returning('*')
+        // .insert({  // returning('*') -> is a method from Knex that allows us to return all columns
+        //     email: email,
+        //     name: name,
+        //     time: new Date()
+
+        // }).then(user => {
+        //     response.json(user[0]);
+
+        // })
+        .catch(err => {
+            response.status(400).json('Unable to register');
+        });
+
 });
 
 app.get('/profile/:id', (request, response) => {
     const {id} = request.params;
-    let found = false;
-    dataBase.users.forEach((user) => {
-        if (user.id === id) {
-            found = true;
-            return response.json(user);
-        }
-    });
-    if (!found) {
-        response.status(400).json('No such User');
-    }
+
+    dataBase.select('*').from('users').where({id: id})
+        .then(user => {
+            if (user.length) { // 
+                response.json(user[0]);
+            } else {
+                response.status(400).json('Not Found');
+            }
+        })
+        .catch(err => {
+            response.status(400).json('error getting user');
+        });
 });
+
 
 app.put('/image', (request, response) => {
     const {id} = request.body;
-    let found = false;
-    dataBase.users.forEach((user) => {
-        if (user.id === id) {
-            user.entries++;
-            found = true;
-            return response.json(user.entries);
-        }
-    });
-    if (!found) {
-        response.status(400).json('No such User');
-    }
-
+    dataBase('users').where('id', '=', id) //Knex syntax from documentation
+        .increment('entries', 1)
+        .returning('entries')
+        .then(entries => response.json(entries))
+        .catch(err => console.log(response.status(400).json('Unable to get entries')));
 });
+
 
 app.listen(3000, () => {
     console.log('app si running on port 3000');
