@@ -1,6 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+
+
 // For the "Knex" library - it connects the database to the server
 const knex = require('knex');
 // Importing Controllers
@@ -44,7 +46,9 @@ app.post('/register',(request, response)=>{register.handleRegisterPost(request,r
 
 app.get('/profile/:id', (request, response)=>{profile.handleProfileGet(request,response,dataBase)} );
 
-app.put('/image',(request, response)=>{image.handleImagePut(request,response,dataBase)}  );
+app.put('/image',(request, response)=>{image.handleImagePut(request,response,dataBase)});
+
+app.post('/imageUrl',(request, response)=>{image.handleApiCall(request,response)} );
 
 
 app.listen(3000, () => {

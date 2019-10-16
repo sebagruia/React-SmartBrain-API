@@ -1,11 +1,9 @@
 const handleRegisterPost = (request, response, dataBase, bcrypt) => {
 const saltRounds = 10;
-
-    const {
-        email,
-        password,
-        name
-    } = request.body;
+    const {email,password,name} = request.body;
+    if(!email || !name || !password){
+        return response.status(400).json('Incorrect form submission');
+    }
     const hash = bcrypt.hashSync(password, saltRounds);
 
     //This is the way to add new user when we don't use a DataBase bot only a variable that holds all our users
