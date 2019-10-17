@@ -51,8 +51,8 @@ app.put('/image',(request, response)=>{image.handleImagePut(request,response,dat
 app.post('/imageUrl',(request, response)=>{image.handleApiCall(request,response)} );
 
 
-app.listen(3000, () => {
-    console.log('app si running on port 3000');
+app.listen(process.env.PORT || 3000, () => { //process.env.PORT - is ecessary for Heroku, because it uses a random Port
+    console.log(`app si running on port ${process.env.PORT}`);
 });
 
 /*
