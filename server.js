@@ -20,7 +20,7 @@ const dataBase = knex({
         // password: 'test123', // for Windows the "password" = "the password that was set when installing postgress" 
         // database: 'smartBrain'
         //-----------------------------------------------------------
-        host:process.env.DATABASE_URL,
+        connectionString:process.env.DATABASE_URL,
         ssl:true
     }
 });
