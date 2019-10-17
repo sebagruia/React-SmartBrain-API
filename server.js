@@ -37,7 +37,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 app.get('/', (request, response) => {
-    response.json(dataBase.users);
+    response.json('it is working');
 });
 
 app.post('/signIn', (request,response)=>{signIn.handleSignInPost(request,response,dataBase,bcrypt)}); // here we are injecting in this function the dependencies dataBase and bcrypt insetead of just import them in the controller itself
