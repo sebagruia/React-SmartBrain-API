@@ -14,10 +14,14 @@ const image = require('./controllers/image');
 const dataBase = knex({
     client: 'pg',
     connection: {
-        host: 'postgresql-colorful-12613',
-        user: 'postgres', // for Windows the "user" = "postgres" 
-        password: 'test123', // for Windows the "password" = "the password that was set when installing postgress" 
-        database: 'smartBrain'
+        //----This are the settings for connecting to localhost---
+        // host: '127.0.0.1',
+        // user: 'postgres', // for Windows the "user" = "postgres" 
+        // password: 'test123', // for Windows the "password" = "the password that was set when installing postgress" 
+        // database: 'smartBrain'
+        //-----------------------------------------------------------
+        host:process.env.DATABASE_URL,
+        ssl:true
     }
 });
 
