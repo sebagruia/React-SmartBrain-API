@@ -53,7 +53,7 @@ const saltRounds = 10;
 
         // })
         .catch(err => {
-            response.status(400).json('Unable to register');
+            response.status(400).json(`Unable to register${err}`);
         });
 
     };
