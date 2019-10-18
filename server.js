@@ -13,16 +13,18 @@ const image = require('./controllers/image');
 
 const dataBase = knex({
     client: 'pg',
-    connection: {
-        //----This are the settings for connecting to localhost---
-        // host: '127.0.0.1',
-        // user: 'postgres', // for Windows the "user" = "postgres" 
-        // password: 'test123', // for Windows the "password" = "the password that was set when installing postgress" 
-        // database: 'smartBrain'
-        //-----------------------------------------------------------
+    // connection: {
+    //     //----This are the settings for connecting to localhost---
+    //     // host: '127.0.0.1',
+    //     // user: 'postgres', // for Windows the "user" = "postgres" 
+    //     // password: 'test123', // for Windows the "password" = "the password that was set when installing postgress" 
+    //     // database: 'smartBrain'
+    //     //-----------------------------------------------------------
+    //     connectionString: process.env.DATABASE_URL,
+    //     ssl: true,
+    // }
         connectionString: process.env.DATABASE_URL,
         ssl: true,
-    }
 });
 
 dataBase.select('*').from('users').then(data => { //Knex creates a Promise, so we can use "then()"
