@@ -27,7 +27,7 @@ const saltRounds = 10;
                 return trx.insert({
                     email: logInEmail[0],
                     name: name,
-                    time: new Date()
+                    joined: new Date()
 
                 })
                     .into('users')
