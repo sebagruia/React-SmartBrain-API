@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node server.js",
-    "start:local": "nodemon server.js" 
+    "start:local": "nodemon server.js"
   },
   "author": "",
   "license": "ISC",
@@ -19,6 +19,6 @@
     "pg": "^7.12.1"
   },
   "devDependencies": {
-    "nodemon": "^1.19.3"
+    "nodemon": "^1.19.4"
   }
 }
